@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plays Play[]
+  @@map("users")
+}
+
+model Track {
+  id         String   @id @default(cuid())
+  name       String
+  artistIds  String[] // Array of Spotify artist IDs
+  spotifyId  String   @unique
+  durationMs Int
+  createdAt  DateTime @default(now())
+
+  plays       Play[]
+  audioFeature AudioFeature?
+  @@map("tracks")
+}
+
+model AudioFeature {
+  id            String  @id @default(cuid())
+  trackId       String  @unique
+  valence       Float
+  energy        Float
+  tempo         Float
+  danceability  Float
+  acousticness  Float
+  speechiness   Float
+  mode          Int
+  loudness      Float
+  createdAt     DateTime @default(now())
+
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  @@map("audio_features")
+}
+
+model Play {
+  id         String   @id @default(cuid())
+  userId     String
+  trackId    String
+  playedAt   DateTime
+  msPlayed   Int
+  source     String   // 'oauth' or 'upload'
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  emotion Emotion?
+  @@unique([userId, trackId, playedAt])
+  @@map("plays")
+}
+
+model Emotion {
+  id         String  @id @default(cuid())
+  playId     String  @unique
+  category   String  // ENUM: 'Excited/Happy', 'Calm/Content', 'Sad/Melancholic', 'Tense/Angry', 'Neutral'
+  moodScore  Float
+  createdAt  DateTime @default(now())
+
+  play Play @relation(fields: [playId], references: [id], onDelete: Cascade)
+  @@map("emotions")
+}
