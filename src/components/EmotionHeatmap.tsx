@@ -276,7 +276,7 @@ export default function EmotionHeatmap() {
   return (
     <div className="">
       <div className="flex items-center justify-end mb-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={jumpToStart}
             disabled={!minDate}
@@ -303,7 +303,7 @@ export default function EmotionHeatmap() {
           </button>
           <select
             aria-label="Select month"
-            className="px-2 py-1 text-xs rounded border text-slate-700 bg-white"
+            className="px-2 py-1 text-xs rounded border text-slate-700 bg-white max-w-[52vw] sm:max-w-none"
             value={currentDate.getMonth()}
             onChange={(e) => {
               const m = Number(e.target.value)
@@ -328,7 +328,7 @@ export default function EmotionHeatmap() {
           </select>
           <select
             aria-label="Select year"
-            className="px-2 py-1 text-xs rounded border text-slate-700 bg-white"
+            className="px-2 py-1 text-xs rounded border text-slate-700 bg-white max-w-[40vw] sm:max-w-none"
             value={currentDate.getFullYear()}
             onChange={(e) => {
               const y = Number(e.target.value)
@@ -402,7 +402,7 @@ export default function EmotionHeatmap() {
 
       <div className="grid grid-cols-7 gap-2">
         {days.map(day => (
-          <div key={day} className="text-center text-slate-500 text-xs font-medium py-2">
+          <div key={day} className="text-center text-slate-500 text-[10px] sm:text-xs font-medium py-2">
             {day}
           </div>
         ))}
@@ -424,7 +424,7 @@ export default function EmotionHeatmap() {
           return (
             <div
               key={day + 1}
-              className={`aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-150 hover:ring-2 hover:ring-white/30 cursor-pointer ${
+              className={`aspect-square rounded-lg flex items-center justify-center text-[11px] sm:text-sm font-medium transition-all duration-150 hover:ring-2 hover:ring-white/30 cursor-pointer ${
                 dayData && dayData.count > 0 ? `${categoryTileBase(dayData.dominantCategory)} border` : 'bg-white/10 text-white/50 border border-white/20'
               }`}
               title={dayData ? `${date.toDateString()} • ${dayData.count} plays • Dominant: ${dayData.dominantCategory || 'N/A'} • Avg mood: ${dayData.avgMood.toFixed(2)}` : `${date.toDateString()} • No activity`}

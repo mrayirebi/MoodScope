@@ -94,13 +94,13 @@ export default function WeekdayHourHeatmap() {
         )}
 
         {detail && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4" onClick={() => setDetail(null)}>
-            <div className="bg-neutral-900 border border-white/10 rounded-xl w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-2 sm:px-4" onClick={() => setDetail(null)}>
+            <div className="bg-neutral-900 border border-white/10 rounded-xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-3 border-b border-white/10">
                 <div className="font-semibold text-sm">Top tracks — {days[detail.weekday]} {detail.hour}:00</div>
                 <button className="px-2 py-1 rounded hover:bg-white/5" onClick={() => setDetail(null)}>Close</button>
               </div>
-              <div className="p-3">
+              <div className="p-3 overflow-y-auto max-h-[70vh]">
                 {detail.tracks.length === 0 ? (
                   <div className="text-sm text-slate-400">No tracks in this slot.</div>
                 ) : (

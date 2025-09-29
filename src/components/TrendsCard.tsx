@@ -60,9 +60,9 @@ export default function TrendsCard() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <CardTitle>Trending Emotions</CardTitle>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
             <label className="flex items-center gap-1">
               <span>Window</span>
               <select

@@ -181,9 +181,9 @@ export default function YearlyCalendar() {
   return (
     <>
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <CardTitle>Listening Calendar</CardTitle>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <button className="px-2 py-1 rounded border border-white/10 hover:bg-white/5" onClick={() => setYear(y => y - 1)}>‹ Prev</button>
           <span className="min-w-[4ch] text-center">{year}</span>
           <button className="px-2 py-1 rounded border border-white/10 hover:bg-white/5" onClick={() => setYear(y => y + 1)}>Next ›</button>
@@ -214,14 +214,14 @@ export default function YearlyCalendar() {
       </CardContent>
     </Card>
     {selectedDate && createPortal(
-      <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4" onClick={() => { setSelectedDate(null); setDayData(null) }}>
-        <div className="bg-neutral-900 border border-white/10 rounded-xl w-full max-w-3xl shadow-xl" onClick={e => e.stopPropagation()}>
+      <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center px-2 sm:px-4" onClick={() => { setSelectedDate(null); setDayData(null) }}>
+        <div className="bg-neutral-900 border border-white/10 rounded-xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
           <div className="flex items-center justify-between p-4 border-b border-white/10">
             <div className="font-semibold">Emotions for {selectedDate}</div>
             <button className="px-2 py-1 rounded hover:bg-white/5" onClick={() => { setSelectedDate(null); setDayData(null) }}>Close</button>
           </div>
-          <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="h-56">
+          <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto max-h-[70vh]">
+            <div className="h-56 sm:h-64">
               {loadingDay ? (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />

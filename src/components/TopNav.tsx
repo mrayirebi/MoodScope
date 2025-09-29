@@ -67,7 +67,7 @@ export default function TopNav() {
             MoodScope
           </Link>
           {isAuthed && (
-            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300 overflow-x-auto whitespace-nowrap">
               <Calendar className="w-4 h-4" />
               <span>Range:</span>
               <div className="flex rounded-md border border-slate-300/40 dark:border-white/10 overflow-hidden">
@@ -165,6 +165,7 @@ export default function TopNav() {
           )}
         </div>
       </div>
+      {/* Inline filters are visible at all sizes with horizontal scroll if needed */}
     </nav>
   )
 }

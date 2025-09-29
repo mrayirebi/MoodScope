@@ -100,13 +100,13 @@ export default function TopArtistsCard() {
         )}
       </CardContent>
       {modal?.open && (
-        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4" onClick={() => setModal({ open: false })}>
-          <div className="bg-neutral-900 border border-white/10 rounded-xl w-full max-w-2xl shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center px-2 sm:px-4" onClick={() => setModal({ open: false })}>
+          <div className="bg-neutral-900 border border-white/10 rounded-xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="font-semibold">{modal?.name}</div>
               <button className="px-2 py-1 rounded hover:bg-white/5" onClick={() => setModal({ open: false })}>Close</button>
             </div>
-            <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto max-h-[70vh]">
               <div>
                 <div className="text-sm font-semibold mb-2">News</div>
                 {modal?.loading ? (
