@@ -1,0 +1,62 @@
+[
+  {
+    "endTime": "2023-09-01 12:00",
+    "artistName": "Happy Artist",
+    "trackName": "Joyful Song",
+    "msPlayed": 180000
+  },
+  {
+    "endTime": "2023-09-01 12:05",
+    "artistName": "Calm Musician",
+    "trackName": "Peaceful Melody",
+    "msPlayed": 240000
+  },
+  {
+    "endTime": "2023-09-01 12:10",
+    "artistName": "Energetic Band",
+    "trackName": "High Energy Track",
+    "msPlayed": 200000
+  },
+  {
+    "endTime": "2023-09-01 12:15",
+    "artistName": "Sad Singer",
+    "trackName": "Melancholy Ballad",
+    "msPlayed": 220000
+  },
+  {
+    "endTime": "2023-09-01 12:20",
+    "artistName": "Angry Rockers",
+    "trackName": "Intense Anthem",
+    "msPlayed": 190000
+  },
+  {
+    "endTime": "2023-09-02 14:00",
+    "artistName": "Happy Artist",
+    "trackName": "Another Joyful Song",
+    "msPlayed": 195000
+  },
+  {
+    "endTime": "2023-09-02 14:05",
+    "artistName": "Calm Musician",
+    "trackName": "Tranquil Tune",
+    "msPlayed": 250000
+  },
+  {
+    "endTime": "2023-09-03 16:00",
+    "artistName": "Energetic Band",
+    "trackName": "Power Song",
+    "msPlayed": 210000
+  },
+  {
+    "endTime": "2023-09-03 16:05",
+    "artistName": "Sad Singer",
+    "trackName": "Heartbreak Song",
+    "msPlayed": 230000
+  },
+  {
+    "endTime": "2023-09-03 16:10",
+    "artistName": "Angry Rockers",
+    "trackName": "Rebellious Track",
+    "msPlayed": 185000
+  }
+]

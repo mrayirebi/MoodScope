@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Theme tokens */
+:root {
+  --brand: 222 84% 56%;
+  --accent: 200 95% 65%;
+  --surface: 222 14% 12%;
+  --card: 222 14% 16%;
+}
+
+/* Base styles */
+html { scroll-behavior: smooth; }
+body { min-height: 100vh; background-color: hsl(var(--surface)); color: rgb(241 245 249); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+h1,h2,h3,h4,h5,h6 { line-height: 1.15; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Heading and muted text adjustments for light */
+.light h1, .light h2, .light h3, .light h4, .light h5, .light h6 { color: rgb(15 23 42); }
+.light .text-muted, .light .muted, .light .subtle { color: rgb(71 85 105); }
+
+/* Light theme */
+.light {
+  --surface: 0 0% 100%;
+  --card: 0 0% 100%;
+}
+
+/* Light theme base text & surfaces */
+.light body {
+  color: rgb(15 23 42); /* slate-900 for contrast on white */
+  -webkit-font-smoothing: auto; /* prevent overly thin rendering on light */
+}
+
+/* Utility for glass cards */
+.glass { background-color: rgba(255,255,255,0.05); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+.light .glass { background-color: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 10px 30px rgba(2,6,23,0.06); }

@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
+import dynamic from 'next/dynamic'
+const TopNav = dynamic(() => import('@/components/TopNav'), { ssr: false })
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,8 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Providers>{children}</Providers>
+  <body className={`${inter.className} min-h-screen bg-surface text-slate-100`}>
+        <Providers>
+          <TopNav />
+          {children}
+        </Providers>
       </body>
     </html>
   )

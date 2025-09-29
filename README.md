@@ -9,6 +9,7 @@ A full-stack web app that ingests a user's Spotify listening data and produces e
 - **Backend/API**: Next.js route handlers (Node)
 - **DB**: PostgreSQL + Prisma
 - **Charts**: Recharts
+ - Optional AI: OpenAI/Azure for enhanced emotion classification
 
 ## Setup
 
@@ -20,7 +21,10 @@ A full-stack web app that ingests a user's Spotify listening data and produces e
    - `NEXTAUTH_URL`
    - `NEXTAUTH_SECRET`
    - `SPOTIFY_CLIENT_ID`
-   - `SPOTIFY_CLIENT_SECRET`
+    - `SPOTIFY_CLIENT_SECRET`
+    - Optional AI (choose one):
+       - Azure OpenAI: `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT`
+       - OpenAI: `OPENAI_API_KEY` and optional `OPENAI_MODEL` (default `gpt-4o-mini`)
 5. Run Prisma migrations: `npx prisma migrate dev`
 6. Generate Prisma client: `npx prisma generate`
 7. Run the development server: `npm run dev`
@@ -29,7 +33,7 @@ A full-stack web app that ingests a user's Spotify listening data and produces e
 
 - OAuth flow to read recent plays, saved tracks, top tracks/artists from Spotify
 - File upload for StreamingHistory*.json bundles
-- Emotion classification based on Spotify audio features (valence, energy)
+- Emotion classification based on Spotify audio features (valence, energy), with optional AI enhancement when configured
 - Aggregation by day, week, month
 - Interactive charts: stacked area, line chart with SMA, heatmap
 - Data deletion for privacy

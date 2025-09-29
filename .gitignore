@@ -22,6 +22,11 @@ out/
 # IDE
 .vscode/
 .idea/
+.vs/
+
+# Local binaries / archives
+ngrok.exe
+ngrok.zip
 
 # OS
 .DS_Store

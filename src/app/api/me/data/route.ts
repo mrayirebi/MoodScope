@@ -34,3 +34,32 @@ export async function DELETE() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || !(session.user as any)?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = (session.user as any).id as string
+
+    const [playsCount, emotionsCount, minMax] = await Promise.all([
+      prisma.play.count({ where: { userId } }),
+      prisma.emotion.count({ where: { play: { userId } } }),
+      prisma.play.findFirst({
+        where: { userId },
+        orderBy: { playedAt: 'asc' },
+        select: { playedAt: true },
+      }).then(async (first) => {
+        if (!first) return { min: null, max: null }
+        const last = await prisma.play.findFirst({ where: { userId }, orderBy: { playedAt: 'desc' }, select: { playedAt: true } })
+        return { min: first.playedAt, max: last?.playedAt ?? null }
+      }),
+    ])
+
+    return NextResponse.json({ playsCount, emotionsCount, range: minMax })
+  } catch (error) {
+    console.error('Me data summary error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

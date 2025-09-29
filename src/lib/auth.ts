@@ -32,16 +32,17 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'user-read-recently-played user-library-read user-top-read',
+          scope: 'user-read-email user-read-private user-read-recently-played user-library-read user-top-read',
         },
       },
     }),
   ],
   callbacks: {
-    session: async ({ session, token }) => {
+    session: async ({ session, user }) => {
       if (session?.user) {
-        (session.user as any).id = token.sub!
-        session.accessToken = token.accessToken as string
+        (session.user as any).id = user.id
+        // Note: accessToken is not available in database sessions
+        // You can get it from the account if needed
       }
       return session
     },

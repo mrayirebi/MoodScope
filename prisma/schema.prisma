@@ -11,13 +11,19 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  timezone  String   @default("UTC")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  timezone      String    @default("UTC")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
+  accounts Account[]
+  sessions Session[]
   plays Play[]
+  dailyAggregates DailyAggregate[]
   @@map("users")
 }
 
@@ -72,8 +78,60 @@ model Emotion {
   playId     String  @unique
   category   String  // ENUM: 'Excited/Happy', 'Calm/Content', 'Sad/Melancholic', 'Tense/Angry', 'Neutral'
   moodScore  Float
+  // v3 enrichment (optional)
+  label      String?
+  valence    Float?
+  arousal    Float?
+  confidence Float?
   createdAt  DateTime @default(now())
 
   play Play @relation(fields: [playId], references: [id], onDelete: Cascade)
   @@map("emotions")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model DailyAggregate {
+  id               String   @id @default(cuid())
+  userId           String
+  bucketDate       DateTime // date (UTC) representing the day bucket, normalized by user tz during ingestion
+  count            Int
+  msPlayed         BigInt
+  moodAvg          Float?
+  dominantEmotion  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bucketDate])
+  @@map("daily_aggregates")
 }
