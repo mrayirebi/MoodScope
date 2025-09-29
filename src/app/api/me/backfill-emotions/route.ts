@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import type { AudioFeatures } from '@/lib/emotion'
 import { classifyEmotionCategory } from '@/lib/emotion_v3'
-import { aiEnabled, classifyEmotionAI } from '@/lib/ai'
+import { aiEnabled, classifyEmotionAI, classifyEmotionAIWithWeb } from '@/lib/ai'
 
 function generateMockFeatures(trackName: string, artistName: string): AudioFeatures {
   const text = `${trackName} ${artistName}`.toLowerCase()
@@ -36,9 +36,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
   const userId = (session.user as any).id as string
-  const aiParam = (new URL(req.url)).searchParams.get('ai') as 'auto'|'only'|'off'|null
+  const aiParam = (new URL(req.url)).searchParams.get('ai') as 'auto'|'only'|'off'|'web'|null
   const allowAI = aiParam !== 'off'
   const requireAI = aiParam === 'only'
+  const useWeb = aiParam === 'web'
 
     // Find plays without an emotion
     const plays = await prisma.play.findMany({
@@ -65,7 +66,9 @@ export async function POST(req: Request) {
         let moodScore = v3.mood
         if (allowAI && aiEnabled()) {
           try {
-            const ai = await classifyEmotionAI({
+            const ai = useWeb
+              ? await classifyEmotionAIWithWeb({ trackName: p.track?.name || 'track', artists: p.track?.artistIds?.length ? [p.track.artistIds[0]] : [] }, { timeoutMs: 7000 })
+              : await classifyEmotionAI({
               trackName: p.track?.name || 'track',
               artists: p.track?.artistIds?.length ? [p.track.artistIds[0]] : [],
               features: {

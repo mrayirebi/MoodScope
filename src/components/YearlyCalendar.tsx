@@ -130,11 +130,12 @@ export default function YearlyCalendar() {
       const key = dateKeyInTZ(date, timeZone)
       const rec = map.get(key)
       const count = rec?.count ?? 0
+      const hasEmotion = (rec?.moodAvg ?? null) !== null || (rec?.dominantEmotion ?? null) !== null
       const base = colorFor(rec?.dominantEmotion ?? null)
       // Subtle intensity by count
       const intensity = count === 0 ? 'opacity-40' : count < 5 ? 'opacity-70' : count < 15 ? 'opacity-85' : 'opacity-100'
       const onClick = () => {
-        if (count === 0) return
+        if (!hasEmotion) return
         setSelectedDate(key)
         setLoadingDay(true)
         const q = `${source && source !== 'all' ? `?source=${encodeURIComponent(source)}` : ''}${source && source !== 'all' ? '&' : '?'}debug=1`
@@ -147,9 +148,9 @@ export default function YearlyCalendar() {
       tiles.push({
         key,
         label: d,
-        cls: `${base} ${intensity} rounded h-7 text-[10px] flex items-center justify-center border border-white/10 cursor-pointer relative`,
+        cls: `${base} ${intensity} rounded h-7 text-[10px] flex items-center justify-center border border-white/10 ${hasEmotion ? 'cursor-pointer' : 'cursor-default'} relative`,
         title: `${key} • ${count} plays`,
-        onClick: count > 0 ? onClick : undefined,
+        onClick: hasEmotion ? onClick : undefined,
         anomaly: !!rec?.anomaly,
       })
     }

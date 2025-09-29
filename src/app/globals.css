@@ -35,3 +35,14 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; }
 /* Utility for glass cards */
 .glass { background-color: rgba(255,255,255,0.05); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
 .light .glass { background-color: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 10px 30px rgba(2,6,23,0.06); }
+
+/* Subtle gradient background & radial accents */
+.bg-surface {
+  background:
+    radial-gradient(60rem 60rem at 80% -10%, rgba(56,189,248,0.12), transparent 55%),
+    radial-gradient(40rem 40rem at -10% 20%, rgba(147,51,234,0.10), transparent 50%),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+}
+
+/* Card helper */
+.card-surface { background-color: hsl(var(--card)); border-radius: 1rem; border: 1px solid rgba(255,255,255,0.08); }

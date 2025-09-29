@@ -24,13 +24,14 @@ export default function EmotionHeatmap() {
       try {
         const res = await fetch('/api/aggregate?group=month')
         if (!res.ok) throw new Error('Failed to load range')
-  const raw = await res.json()
-        if (!Array.isArray(raw) || raw.length === 0) {
+        const obj = await res.json()
+        const rows = Array.isArray(obj) ? obj : (obj?.rows || [])
+        if (!Array.isArray(rows) || rows.length === 0) {
           setMinDate(null)
           setMaxDate(null)
           return
         }
-        const periods = raw
+        const periods = rows
           .map((r: any) => new Date(r.period))
           .filter((d: Date) => !isNaN(d.getTime()))
 
@@ -53,7 +54,7 @@ export default function EmotionHeatmap() {
         // Build list of months that have data
         const monthKeys = Array.from(
           new Set(
-            raw
+            rows
               .map((r: any) => new Date(r.period))
               .filter((d: Date) => !isNaN(d.getTime()))
               .map((d: Date) => d.getFullYear() * 12 + d.getMonth())
@@ -96,7 +97,8 @@ export default function EmotionHeatmap() {
 
       const response = await fetch(`/api/aggregate?group=day&from=${startOfMonth.toISOString()}&to=${endOfMonth.toISOString()}`)
       if (response.ok) {
-        const rawData = await response.json()
+        const obj = await response.json()
+        const rawData = Array.isArray(obj) ? obj : (obj?.rows || [])
         // Group by date, accumulate counts per category, and weighted mood
         const dateMap = new Map<number, { totalCount: number, moodSum: number, perCategory: Record<string, number> }>()
 
@@ -104,7 +106,7 @@ export default function EmotionHeatmap() {
           // Use UTC date key to match server-side DATE_TRUNC results (UTC)
           // Use UTC day key to match server-side DATE_TRUNC results (UTC)
           const date = dayKeyUTC(new Date(item.period))
-          const cnt = Number(item.count) || 0
+          const cnt = Number(item.value) || 0
           const avg = Number(item.avg_mood) || 0
           const cat = String(item.category || 'Neutral')
           const existing = dateMap.get(date) || { totalCount: 0, moodSum: 0, perCategory: {} }

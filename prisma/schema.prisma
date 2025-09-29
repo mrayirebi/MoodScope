@@ -24,6 +24,8 @@ model User {
   sessions Session[]
   plays Play[]
   dailyAggregates DailyAggregate[]
+  calibrations    UserCalibrations?
+  aggDaily        AggDaily[]
   @@map("users")
 }
 
@@ -69,6 +71,7 @@ model Play {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
   emotion Emotion?
+  emotionPlay EmotionPlay?
   @@unique([userId, trackId, playedAt])
   @@map("plays")
 }
@@ -134,4 +137,52 @@ model DailyAggregate {
 
   @@unique([userId, bucketDate])
   @@map("daily_aggregates")
+}
+
+model UserCalibrations {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  v_lo      Float
+  v_hi      Float
+  e_lo      Float
+  e_hi      Float
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_calibrations")
+}
+
+model EmotionPlay {
+  id         String   @id @default(cuid())
+  playId     String   @unique
+  happy      Float
+  calm       Float
+  sad        Float
+  tense      Float
+  neutral    Float
+  confidence Float
+  createdAt  DateTime @default(now())
+
+  play Play @relation(fields: [playId], references: [id], onDelete: Cascade)
+
+  @@map("emotion_plays")
+}
+
+model AggDaily {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  moodAvg   Float?
+  happy     Float?
+  calm      Float?
+  sad       Float?
+  tense     Float?
+  neutral   Float?
+  plays     Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("agg_daily")
 }

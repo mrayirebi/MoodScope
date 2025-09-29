@@ -6,7 +6,7 @@ import { streamingHistorySchema } from '@/lib/schemas'
 import { ZodError } from 'zod'
 import { classifyEmotion, calculateMoodScore, type AudioFeatures } from '@/lib/emotion'
 import { classifyEmotionCategory } from '@/lib/emotion_v3'
-import { aiEnabled, classifyEmotionAI, reconcileAIWithV2 } from '@/lib/ai'
+import { aiEnabled, classifyEmotionAI, classifyEmotionAIWithWeb, reconcileAIWithV2 } from '@/lib/ai'
 import { getUserSpotifyAccessToken } from '@/lib/spotify'
 
 // Mock audio features generator based on track/artist names
@@ -61,9 +61,10 @@ export async function POST(request: NextRequest) {
 
     const userId = (session.user as any).id
 
-  const aiParam = (request.nextUrl.searchParams.get('ai') as 'auto'|'only'|'off'|null) || 'auto'
+  const aiParam = (request.nextUrl.searchParams.get('ai') as 'auto'|'only'|'off'|'web'|null) || 'auto'
   const allowAI = aiParam !== 'off'
   const requireAI = aiParam === 'only'
+  const useWeb = aiParam === 'web'
 
   const formData = await request.formData()
     const file = formData.get('file') as File
@@ -241,7 +242,9 @@ export async function POST(request: NextRequest) {
           let moodScore = v3.mood
           if (allowAI && aiEnabled()) {
             try {
-              const aiRaw = await classifyEmotionAI({
+              const aiRaw = useWeb
+                ? await classifyEmotionAIWithWeb({ trackName: play.trackName, artists: play.artistName ? [play.artistName] : [] }, { timeoutMs: 7000 })
+                : await classifyEmotionAI({
                 trackName: play.trackName,
                 artists: play.artistName ? [play.artistName] : [],
                 features: {

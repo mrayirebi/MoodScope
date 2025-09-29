@@ -30,6 +30,33 @@ type Input = {
   }
 }
 
+// Optional web search (Tavily) for classification context
+type WebDoc = { title?: string; url: string; content?: string; published_date?: string | null }
+
+async function tavilySearch(query: string, max_results = 6, signal?: AbortSignal): Promise<WebDoc[]> {
+  const apiKey = process.env.TAVILY_API_KEY
+  if (!apiKey) return []
+  try {
+    const res = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: apiKey,
+        query,
+        max_results,
+        search_depth: 'basic',
+        include_answer: false,
+        include_raw_content: true,
+      }),
+      signal,
+    })
+    if (!res.ok) return []
+    const j = await res.json()
+    const results = Array.isArray(j.results) ? j.results : []
+    return results.map((r: any) => ({ title: r.title, url: r.url, content: r.content, published_date: r.published_date ?? null }))
+  } catch { return [] }
+}
+
 function buildPrompt(input: Input) {
   const { trackName, artists, features } = input
   const desc = [
@@ -50,6 +77,26 @@ Mapping guidance (deterministic):
 - Otherwise -> "Neutral"
 Use other features (danceability, speechiness, acousticness, tempo, loudness, mode) only to disambiguate near-threshold cases. Do not invent categories beyond the list. Always follow the mapping guidance when valence/energy clearly indicate a bucket.`
   const user = `${desc}\n\nRespond as JSON like: {"category":"Calm/Content","moodScore":0.64}`
+  return { system: sys, user }
+}
+
+function buildWebPrompt(trackName: string | undefined, artist: string | undefined, docs: WebDoc[]) {
+  const meta = [
+    trackName ? `Track: ${trackName}` : null,
+    artist ? `Artist: ${artist}` : null,
+  ].filter(Boolean).join('\n')
+  const sys = `You are a music mood analyst. Using the web snippets provided, classify the song's overall emotional category.
+Return strict JSON with: category, moodScore.
+Categories: "Excited/Happy", "Calm/Content", "Sad/Melancholic", "Tense/Angry", "Neutral".
+Rules:
+- Prefer authoritative sources; do not invent.
+- If sources conflict or are unclear, choose the closest category and set a moderate moodScore.
+- Ignore non-song contexts (e.g., news, unrelated pages).`
+  const payload = {
+    meta,
+    snippets: docs.map(d => ({ title: d.title, url: d.url, content: d.content })),
+  }
+  const user = `Input JSON:\n${JSON.stringify(payload)}\nRespond ONLY as JSON like {"category":"Calm/Content","moodScore":0.64}`
   return { system: sys, user }
 }
 
@@ -128,6 +175,75 @@ export async function classifyEmotionAI(input: Input, opts?: { timeoutMs?: numbe
     if (process.env.OPENAI_API_KEY) {
       const res = await callOpenAI(prompt, controller.signal)
       return res
+    }
+    return null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(t)
+  }
+}
+
+// Web-search–augmented classifier. Requires TAVILY_API_KEY and an AI provider.
+export async function classifyEmotionAIWithWeb(input: { trackName?: string; artists?: string[] }, opts?: { timeoutMs?: number; maxResults?: number }): Promise<AIEmotionResult | null> {
+  if (!aiEnabled() || !process.env.TAVILY_API_KEY) return null
+  const timeoutMs = opts?.timeoutMs ?? 8000
+  const maxResults = Math.max(3, Math.min(opts?.maxResults ?? 6, 10))
+  const controller = new AbortController()
+  const t = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const title = input.trackName?.trim()
+    const artist = (input.artists && input.artists.length ? input.artists[0] : undefined)?.toString()
+    if (!title) return null
+    // Two focused queries
+    const q1 = `${title} ${artist || ''} song mood meaning`.trim()
+    const q2 = `${title} ${artist || ''} genre mood review`.trim()
+    const [d1, d2] = await Promise.all([
+      tavilySearch(q1, maxResults, controller.signal),
+      tavilySearch(q2, maxResults, controller.signal),
+    ])
+    const docs = [...d1, ...d2].slice(0, maxResults)
+    if (!docs.length) return null
+    const prompt = buildWebPrompt(title, artist, docs)
+    // Call provider
+    if (process.env.AZURE_OPENAI_ENDPOINT && process.env.AZURE_OPENAI_API_KEY && process.env.AZURE_OPENAI_DEPLOYMENT) {
+      const endpoint = process.env.AZURE_OPENAI_ENDPOINT!
+      const apiKey = process.env.AZURE_OPENAI_API_KEY!
+      const deployment = process.env.AZURE_OPENAI_DEPLOYMENT!
+      const url = `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}/chat/completions?api-version=2024-02-15-preview`
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'api-key': apiKey },
+        body: JSON.stringify({ messages: [ { role: 'system', content: prompt.system }, { role: 'user', content: prompt.user } ], temperature: 0, response_format: { type: 'json_object' } }),
+        signal: controller.signal,
+      })
+      if (!res.ok) return null
+      const j = await res.json()
+      const content: string | undefined = j?.choices?.[0]?.message?.content
+      if (!content) return null
+      const parsed = JSON.parse(content)
+      const category = parsed.category as Emotion | undefined
+      const moodScore = typeof parsed.moodScore === 'number' ? parsed.moodScore : undefined
+      if (!category) return null
+      return { category, moodScore }
+    }
+    if (process.env.OPENAI_API_KEY) {
+      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+        body: JSON.stringify({ model, messages: [ { role: 'system', content: prompt.system }, { role: 'user', content: prompt.user } ], temperature: 0, response_format: { type: 'json_object' } }),
+        signal: controller.signal,
+      })
+      if (!res.ok) return null
+      const j = await res.json()
+      const content: string | undefined = j?.choices?.[0]?.message?.content
+      if (!content) return null
+      const parsed = JSON.parse(content)
+      const category = parsed.category as Emotion | undefined
+      const moodScore = typeof parsed.moodScore === 'number' ? parsed.moodScore : undefined
+      if (!category) return null
+      return { category, moodScore }
     }
     return null
   } catch {

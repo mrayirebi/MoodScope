@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { classifyEmotionCategory } from '@/lib/emotion_v3'
-import { aiEnabled, classifyEmotionAI, reconcileAIWithV2 } from '@/lib/ai'
+import { aiEnabled, classifyEmotionAI, classifyEmotionAIWithWeb, reconcileAIWithV2 } from '@/lib/ai'
 import { getUserSpotifyAccessToken } from '@/lib/spotify'
 
 function clamp01(x: number) { return Math.max(0, Math.min(1, x)) }
@@ -14,9 +14,10 @@ export async function POST(req: Request) {
     if (!session || !(session.user as any)?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const userId = (session.user as any).id as string
 
-  const aiParam = (new URL(req.url)).searchParams.get('ai') as 'auto'|'only'|'off'|null
-    const allowAI = aiParam !== 'off'
-    const requireAI = aiParam === 'only'
+  const aiParam = (new URL(req.url)).searchParams.get('ai') as 'auto'|'only'|'off'|'web'|null
+  const allowAI = aiParam !== 'off'
+  const requireAI = aiParam === 'only'
+  const useWeb = aiParam === 'web'
 
     // Find plays missing emotion
     const plays = await prisma.play.findMany({
@@ -97,7 +98,9 @@ export async function POST(req: Request) {
   let moodScore = v3.mood
       if (allowAI && aiEnabled()) {
         try {
-          const aiRaw = await classifyEmotionAI({
+          const aiRaw = useWeb
+            ? await classifyEmotionAIWithWeb({ trackName: p.track.name, artists: (p.track as any).artistIds || [] }, { timeoutMs: 7000 })
+            : await classifyEmotionAI({
             trackName: p.track.name,
             artists: (p.track as any).artistIds || [],
             features: { valence, energy, danceability, speechiness, tempo, acousticness, mode },

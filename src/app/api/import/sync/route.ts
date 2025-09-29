@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { classifyEmotionCategory } from '@/lib/emotion_v3'
-import { aiEnabled, classifyEmotionAI, reconcileAIWithV2 } from '@/lib/ai'
+import { aiEnabled, classifyEmotionAI, classifyEmotionAIWithWeb, reconcileAIWithV2 } from '@/lib/ai'
 import { getUserSpotifyAccessToken } from '@/lib/spotify'
 
 
@@ -27,9 +27,10 @@ export async function POST(req: Request) {
     const userId = (session.user as any).id as string
 
   const url = new URL(req.url)
-  const aiParam = (url.searchParams.get('ai') as 'auto'|'only'|'off'|null) || 'auto'
+  const aiParam = (url.searchParams.get('ai') as 'auto'|'only'|'off'|'web'|null) || 'auto'
   const allowAI = aiParam !== 'off'
   const requireAI = aiParam === 'only'
+  const useWeb = aiParam === 'web'
 
   const token = await getUserSpotifyAccessToken(userId)
     if (!token) return NextResponse.json({ error: 'Missing Spotify token' }, { status: 401 })
@@ -263,7 +264,10 @@ export async function POST(req: Request) {
   let moodScore = v3.mood
       if (allowAI && aiEnabled()) {
         try {
-          const aiRaw = await classifyEmotionAI({
+          const firstArtistName = enrichedMap.get(p.track.spotifyId)?.artists?.[0]?.name
+          const aiRaw = useWeb
+            ? await classifyEmotionAIWithWeb({ trackName: p.track.name, artists: firstArtistName ? [firstArtistName] : [] }, { timeoutMs: 7000 })
+            : await classifyEmotionAI({
             trackName: p.track.name,
             artists: (p.track as any).artistIds || [],
             features: { valence, energy, danceability, speechiness, tempo, acousticness, mode },

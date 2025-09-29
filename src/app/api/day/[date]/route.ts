@@ -25,14 +25,29 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
     }
 
+    // Align day bucket to user's timezone to match heatmap keys
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } })
+    const tz = user?.timezone || 'UTC'
+    const dateKeyInTZ = (date: Date, timeZone: string) => {
+      const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date)
+      const y = parts.find(p => p.type === 'year')?.value
+      const m = parts.find(p => p.type === 'month')?.value
+      const d = parts.find(p => p.type === 'day')?.value
+      return `${y}-${m}-${d}`
+    }
+    // Broad UTC window to ensure we capture the user's local day even with time zone offsets
     const start = new Date(dateStr + 'T00:00:00.000Z')
     const end = new Date(start)
     end.setUTCDate(end.getUTCDate() + 1)
+    const padStart = new Date(start)
+    padStart.setUTCDate(padStart.getUTCDate() - 1)
+    const padEnd = new Date(end)
+    padEnd.setUTCDate(padEnd.getUTCDate() + 1)
 
-    const plays = await prisma.play.findMany({
+    let plays = await prisma.play.findMany({
       where: {
         userId,
-        playedAt: { gte: start, lt: end },
+        playedAt: { gte: padStart, lt: padEnd },
         ...(source && source !== 'all' ? { source } : {}),
         emotion: { isNot: null }
       },
@@ -42,6 +57,8 @@ export async function GET(
       },
       orderBy: { playedAt: 'asc' },
     })
+    // Filter down to events whose timezone-adjusted date key equals the requested date
+    plays = plays.filter(p => dateKeyInTZ(p.playedAt, tz) === dateStr)
 
   const byEmotion = new Map<string, { count: number; tracks: Array<{ id: string; name: string; artist: string; artistId?: string }> }>()
   const artistCounts = new Map<string, number>()

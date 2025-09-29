@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 export type RangeKey = '90d' | '365d' | 'all'
 export type DataSource = 'all' | 'oauth' | 'upload' | 'demo' | 'demo-rich'
-export type AiMode = 'auto' | 'only' | 'off'
+export type AiMode = 'auto' | 'only' | 'off' | 'web'
 
 type RangeContextValue = {
   range: RangeKey
@@ -35,7 +35,7 @@ export function RangeProvider({ children }: { children: React.ReactNode }) {
   const [aiMode, setAiMode] = useState<AiMode>(() => {
     try {
       const a = localStorage.getItem('moodscope.aiMode') as AiMode | null
-      if (a === 'auto' || a === 'only' || a === 'off') return a
+      if (a === 'auto' || a === 'only' || a === 'off' || a === 'web') return a
     } catch {}
     return 'auto'
   })

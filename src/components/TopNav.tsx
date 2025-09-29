@@ -55,12 +55,19 @@ export default function TopNav() {
   }
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-white/10 bg-black/30 backdrop-blur">
+  <nav className="relative sticky top-0 z-40 border-b border-white/10 bg-black/30 backdrop-blur">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-16 h-40 opacity-60">
+        <div className="absolute inset-0" style={{background: 'radial-gradient(30rem 10rem at 50% 120%, rgba(56,189,248,0.15), transparent 70%)'}} />
+        <img src="/backgrounds/wave-1.svg" alt="" className="absolute inset-x-0 bottom-0 w-full h-24 object-cover opacity-70" />
+      </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/" className="font-semibold tracking-tight text-lg text-slate-900 dark:text-slate-100">MoodScope</Link>
-          {isAuthed && hasData && (
-            <div className="hidden md:flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-lg text-slate-900 dark:text-slate-100">
+            <img src="/brand/logo-mark.svg" alt="" className="w-6 h-6" />
+            MoodScope
+          </Link>
+          {isAuthed && (
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
               <Calendar className="w-4 h-4" />
               <span>Range:</span>
               <div className="flex rounded-md border border-slate-300/40 dark:border-white/10 overflow-hidden">
@@ -98,6 +105,7 @@ export default function TopNav() {
                 {([
                   { key: 'auto', label: 'Auto' },
                   { key: 'only', label: 'AI only' },
+                  { key: 'web', label: 'Web' },
                   { key: 'off', label: 'Off' },
                 ] as const).map(opt => (
                   <button
